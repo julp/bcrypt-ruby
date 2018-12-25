@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/param.h> /* __FreeBSD__ */
 
 #include <errno.h>
 #ifndef __set_errno
@@ -23,22 +24,22 @@
 #endif
 
 #ifdef TEST
-#include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/times.h>
-#ifdef TEST_THREADS
-#include <pthread.h>
-#endif
+# include <stdio.h>
+# include <unistd.h>
+# include <signal.h>
+# include <time.h>
+# include <sys/time.h>
+# include <sys/times.h>
+# ifdef TEST_THREADS
+#  include <pthread.h>
+# endif
 #endif
 
 #define CRYPT_OUTPUT_SIZE		(7 + 22 + 31 + 1)
 #define CRYPT_GENSALT_OUTPUT_SIZE	(7 + 22 + 1)
 
 #if defined(__GLIBC__) && defined(_LIBC)
-#define __SKIP_GNU
+# define __SKIP_GNU
 #endif
 #include "ow-crypt.h"
 
@@ -176,12 +177,14 @@ char *crypt_ra(const char *key, const char *setting,
 	return _crypt_blowfish_rn(key, setting, (char *)*data, *size);
 }
 
+#if !defined(__FreeBSD__) || __FreeBSD__ < 12
 char *crypt_r(const char *key, const char *setting, void *data)
 {
 	return _crypt_retval_magic(
 		crypt_rn(key, setting, data, CRYPT_OUTPUT_SIZE),
 		setting, (char *)data, CRYPT_OUTPUT_SIZE);
 }
+#endif /* FreeBSD < 12 */
 
 char *crypt(const char *key, const char *setting)
 {
